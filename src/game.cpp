@@ -25,29 +25,93 @@ void Game::GetSlidingMoves(int piece, Position pos) {
   } else if (pieceType == BISHOP) {
     startIdx = 4;
     endIdx = 7;
-  } else { // Queen or other sliding pieces
+  } else { // Queen
     startIdx = 0;
     endIdx = 7;
   }
-
+  Position target;
+  int targetPiece;
   for (int idx = startIdx; idx <= endIdx; idx++) {
     for (int n = 1; n <= 8; n++) {
-      Position target;
       target.file = pos.file + offset[idx].file * n;
       target.rank = pos.rank + offset[idx].rank * n;
 
       if (IsOutOfBound(target))
         break;
 
-      int pieceAtTarget = board->grid[target.rank][target.file];
+      targetPiece = board->grid[target.rank][target.file];
 
-      if (IsFriendlyColor(piece, pieceAtTarget))
-        break; // Stop at friendly piece
+      if (IsFriendlyColor(piece, targetPiece))
+        break;
 
       moves.push_back({pos, target});
 
-      if (pieceAtTarget != NONE) // Stop at opponent's piece after capturing
+      if (targetPiece != NONE)
         break;
+    }
+  }
+}
+
+void Game::GetKnightMoves(int piece, Position pos) {
+  Position offsets[8] = {{1, 2},  {2, 1},  {1, -2},  {2, -1},
+                         {-1, 2}, {-2, 1}, {-1, -2}, {-2, -1}};
+  Position target;
+  int targetPiece;
+  for (auto &offset : offsets) {
+    target.file = pos.file + offset.file;
+    target.rank = pos.rank + offset.rank;
+    if (IsOutOfBound(target))
+      continue;
+    targetPiece = board->grid[target.rank][target.file];
+    if (IsFriendlyColor(piece, targetPiece))
+      continue;
+    moves.push_back({pos, target});
+  }
+}
+
+void Game::GetKingMoves(int piece, Position pos) {
+  Position offsets[8] = {{0, 1},  {1, 0}, {0, -1}, {-1, 0},
+                         {-1, 1}, {1, 1}, {1, -1}, {-1, -1}};
+  Position target;
+  int targetPiece;
+  for (auto &offset : offsets) {
+    target.file = pos.file + offset.file;
+    target.rank = pos.rank + offset.rank;
+    if (IsOutOfBound(target))
+      continue;
+    targetPiece = board->grid[target.rank][target.file];
+    if (IsFriendlyColor(piece, targetPiece))
+      continue;
+    moves.push_back({pos, target});
+  }
+}
+
+void Game::GetPawnMoves(int piece, Position pos) {
+  int pieceColor = board->GetPieceColor(piece);
+  int direction = pieceColor == P_WHITE ? 1 : -1;
+
+  Position target = {pos.file, pos.rank + direction};
+  int targetPiece = board->grid[target.rank][target.file];
+
+  if (!IsOutOfBound(target) && targetPiece == NONE) {
+    moves.push_back({pos, target});
+    // Move two squares forward from the starting rank
+    if ((pieceColor == P_WHITE && pos.rank == 1) ||
+        (pieceColor == P_BLACK && pos.rank == 6)) {
+      target = {pos.file, pos.rank + 2 * direction};
+      targetPiece = board->grid[target.rank][target.file];
+      if (targetPiece == NONE) {
+        moves.push_back({pos, target});
+      }
+    }
+  }
+  for (int dx : {-1, 1}) {
+    target = {pos.file + dx, pos.rank + direction};
+    if (!IsOutOfBound(target)) {
+      int pieceAtTarget = board->grid[target.rank][target.file];
+      if (pieceAtTarget != NONE && !IsFriendlyColor(piece, pieceAtTarget)) {
+        moves.push_back({pos, target});
+      }
     }
   }
 }
@@ -67,10 +131,17 @@ void Game::GetValidMoves(Position pos) {
     return;
   }
   if ((pieceType == ROOK) || (pieceType == BISHOP) || (pieceType == QUEEN)) {
-    std::cout << "slidinglmao\n";
-    GetSlidingMoves(piece, {file, rank});
-  } else
-    std::cout << "fuk\n";
+    GetSlidingMoves(piece, pos);
+  }
+  if (pieceType == KNIGHT) {
+    GetKnightMoves(piece, pos);
+  }
+  if (pieceType == KING) {
+    GetKingMoves(piece, pos);
+  }
+  if (pieceType == PAWN) {
+    GetPawnMoves(piece, pos);
+  }
 }
 
 bool Game::SearchValidMove(Move move) {
@@ -130,6 +201,7 @@ void Game::HandleInput() {
 
 void Game::Run() {
   while (!WindowShouldClose()) {
+
     HandleInput();
     BeginDrawing();
     {
@@ -145,7 +217,7 @@ void Game::Run() {
 void Game::Draw() {
   board->DrawBoard();
   board->DrawPiece();
-  // Highlight selected piece
+  // Highlight selected piece and valid moves
   if (isPieceSelected) {
     DrawRectangleLines(selectedFile * SQUARE_SIZE,
                        (7 - selectedRank) * SQUARE_SIZE, SQUARE_SIZE,
@@ -153,9 +225,9 @@ void Game::Draw() {
     for (auto &move : moves) {
       int file = move.target.file;
       int rank = move.target.rank;
-      // TODO: Change the pattern
-      DrawRectangleLines(file * SQUARE_SIZE, (7 - rank) * SQUARE_SIZE,
-                         SQUARE_SIZE, SQUARE_SIZE, RED);
+      // Draw valid moves
+      DrawRectangle(file * SQUARE_SIZE, (7 - rank) * SQUARE_SIZE, SQUARE_SIZE,
+                    SQUARE_SIZE, {255, 0, 0, 128});
     }
   }
 }

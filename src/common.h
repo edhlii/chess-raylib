@@ -24,6 +24,9 @@ const std::string BLACK_PATH = "../assets/black/";
 const std::map<char, int> pieceTypeFromSymbol = {{'p', PAWN},  {'n', KNIGHT},
                                                  {'r', ROOK},  {'b', BISHOP},
                                                  {'q', QUEEN}, {'k', KING}};
+const std::map<int, char> pieceSymbolFromType = {{PAWN, 'p'},  {KNIGHT, 'n'},
+                                                 {ROOK, 'r'},  {BISHOP, 'b'},
+                                                 {QUEEN, 'q'}, {KING, 'k'}};
 
 struct Position {
   int file;

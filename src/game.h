@@ -3,7 +3,6 @@
 #include "board.h"
 #include "common.h"
 #include "move.h"
-#include <algorithm>
 #include <raylib.h>
 #include <vector>
 
@@ -17,6 +16,10 @@ public:
   bool IsOutOfBound(Position pos);
   bool SearchValidMove(Move move);
   void GetSlidingMoves(int piece, Position pos);
+  void GetKnightMoves(int piece, Position pos);
+  void GetKingMoves(int piece, Position pos);
+  void GetPawnMoves(int piece, Position pos);
+  bool CanEnPassant(int piece, Position pos);
   void Draw();
 
 private:

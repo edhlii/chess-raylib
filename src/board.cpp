@@ -67,6 +67,28 @@ void Board::LoadFenPosition(std::string fen) {
   }
 }
 
+std::string Board::GetFenString() {
+  std::string fen = "";
+  for (int rank = 7; rank >= 0; rank--) {
+    for (int file = 0; file < 8; file++) {
+      int piece = grid[rank][file];
+      if (piece == NONE) {
+        continue;
+      }
+      int pieceType = GetPieceType(piece);
+      int pieceColor = GetPieceColor(piece);
+      char pieceSymbol = pieceSymbolFromType.at(pieceType);
+      if (pieceColor == P_WHITE) {
+        pieceSymbol = std::toupper(pieceSymbol);
+      }
+      fen = fen + pieceSymbol;
+    }
+    fen = fen + "/";
+  }
+  fen.pop_back();
+  return fen;
+}
+
 bool Board::IsTurn(int piece) {
   int pieceColor = piece & P_WHITE ? P_WHITE : P_BLACK;
   if (pieceColor == P_WHITE && isWhiteTurn)

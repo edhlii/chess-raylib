@@ -11,6 +11,7 @@ public:
   void InitializeTextures();
   bool IsTurn(int piece);
   void LoadFenPosition(std::string fen);
+  std::string GetFenString();
   int GetPieceType(int piece);
   int GetPieceColor(int piece);
   void DrawBoard();
